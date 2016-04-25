@@ -57,5 +57,8 @@
  * that method and perform setup using the default set of options.
  */
 - (void)mdc_swipe:(MDCSwipeDirection)direction;
+- (void)gestureRecognizerStateBegan:(CGPoint)original;
+- (void)gestureRecognizerStateChanged:(CGPoint)translation;
+- (void)gestureRecognizerStateEnded;
 
 @end

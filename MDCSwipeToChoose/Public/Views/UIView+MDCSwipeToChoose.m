@@ -40,8 +40,6 @@ const void * const MDCViewStateKey = &MDCViewStateKey;
     self.mdc_viewState = [MDCViewState new];
     self.mdc_viewState.originalCenter = self.center;
     self.mdc_viewState.originalTransform = self.layer.transform;
-
-    [self mdc_setupPanGestureRecognizer];
 }
 
 - (void)mdc_swipe:(MDCSwipeDirection)direction {
@@ -256,6 +254,32 @@ const void * const MDCViewStateKey = &MDCViewStateKey;
                      rotationDirection:self.mdc_viewState.rotationDirection];
         [self mdc_executeOnPanBlockForTranslation:translation];
     }
+}
+
+- (void)gestureRecognizerStateBegan:(CGPoint)original {
+    self.mdc_viewState.originalCenter = self.center;
+    self.mdc_viewState.originalTransform = self.layer.transform;
+    
+    // If the pan gesture originated at the top half of the view, rotate the view
+    // away from the center. Otherwise, rotate towards the center.
+    if (original.y < self.center.y) {
+        self.mdc_viewState.rotationDirection = MDCRotationAwayFromCenter;
+    } else {
+        self.mdc_viewState.rotationDirection = MDCRotationTowardsCenter;
+    }
+}
+
+- (void)gestureRecognizerStateChanged:(CGPoint)translation {
+    // Update the position and transform. Then, notify any listeners of
+    // the updates via the pan block.
+    self.center = MDCCGPointAdd(self.mdc_viewState.originalCenter, translation);
+    [self mdc_rotateForTranslation:translation
+                 rotationDirection:self.mdc_viewState.rotationDirection];
+    [self mdc_executeOnPanBlockForTranslation:translation];
+}
+
+- (void)gestureRecognizerStateEnded {
+    [self mdc_finalizePosition];
 }
 
 @end
